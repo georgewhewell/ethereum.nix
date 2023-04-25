@@ -4,10 +4,18 @@
     pkgs,
     ...
   }: let
-    inherit (pkgs) stdenv mkdocs python310Packages;
+    inherit
+      (pkgs)
+      mkdocs
+      nixosOptionsDoc
+      python310Packages
+      runCommand
+      stdenv
+      writeShellScriptBin
+      ;
 
     my-mkdocs =
-      pkgs.runCommand "my-mkdocs"
+      runCommand "my-mkdocs"
       {
         buildInputs = [
           mkdocs
@@ -24,12 +32,42 @@
         chmod +x $out/bin/mkdocs
       '';
 
-    options-doc = pkgs.callPackage ./options-doc.nix {inherit lib;};
+    options-doc = let
+      eachOptions = with lib;
+        filterAttrs
+        (_: hasSuffix "options.nix")
+        (fs.flattenTree {tree = fs.rakeLeaves ./../modules;});
+
+      eachOptionsDoc = with lib;
+        mapAttrs' (
+          name: value:
+            nameValuePair
+            # take geth.options and turn it into just geth
+            (head (splitString "." name))
+            # generate options doc
+            (nixosOptionsDoc {options = evalModules {modules = [value];};})
+        )
+        eachOptions;
+
+      statements = with lib;
+        concatStringsSep "\n"
+        (mapAttrsToList (k: v: ''
+            path=$out/${k}.md
+            cat ${v.optionsCommonMark} >> $path
+          '')
+          eachOptionsDoc);
+    in
+      runCommand "nixos-options" {} ''
+        mkdir $out
+        ${statements}
+      '';
+
     docsPath = "./docs/reference/module-options";
   in {
     packages.docs = stdenv.mkDerivation {
-      src = ./.;
       name = "ethereum-nix-docs";
+
+      src = ./..;
 
       buildInput = [options-doc];
       nativeBuildInputs = [my-mkdocs];
@@ -43,8 +81,9 @@
         mv site $out
       '';
 
-      passthru.serve = pkgs.writeShellScriptBin "serve" ''
+      passthru.serve = writeShellScriptBin "serve" ''
         set -euo pipefail
+
         # link in options reference
         rm -f ${docsPath}
         ln -s ${options-doc} ${docsPath}

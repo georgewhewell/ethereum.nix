@@ -5,6 +5,7 @@
     ./checks.nix
     ./ci.nix
     ./formatter.nix
+    ./mkdocs.nix
     ./shell.nix
   ];
 }
