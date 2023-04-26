@@ -53,7 +53,7 @@
   in
     (flake-parts.lib.evalFlakeModule
       {
-        inherit self inputs;
+        inherit inputs;
         specialArgs = {
           inherit lib; # make custom lib available to parent functions in flake.parts
         };
@@ -61,6 +61,9 @@
       rec {
         imports = [
           {_module.args.lib = lib;} # make custom lib available to all `perSystem` functions in flake.parts
+
+          inputs.hercules-ci-effects.flakeModule
+
           ./nix
           ./packages
           ./modules
@@ -71,6 +74,7 @@
           "x86_64-darwin"
           "aarch64-darwin"
         ];
+        herculesCI.ciSystems = with builtins; filter (system: (match ".*-darwin" system) == null) systems;
       })
     .config
     .flake;
