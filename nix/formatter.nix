@@ -20,13 +20,14 @@
       };
     };
 
-    mission-control.scripts = {
-      fmt = {
+    devshells.default.commands = [
+      {
         category = "Tools";
-        description = "Format the source tree";
-        exec = "${lib.getExe config.treefmt.build.wrapper}";
-      };
-    };
+        name = "fmt";
+        help = "Format the source tree";
+        command = "nix fmt";
+      }
+    ];
 
     formatter = config.treefmt.build.wrapper;
   };

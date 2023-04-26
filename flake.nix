@@ -20,11 +20,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    flake-compat = {
-      url = "github:edolstra/flake-compat";
-      flake = false;
-    };
-
     # flake-parts
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
@@ -32,16 +27,24 @@
     };
     flake-root.url = "github:srid/flake-root";
     hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
-    mission-control.url = "github:Platonic-Systems/mission-control";
 
     # utils
+    devshell = {
+      url = "github:numtide/devshell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {
+    self,
     flake-parts,
     nixpkgs,
     ...
@@ -50,14 +53,14 @@
   in
     (flake-parts.lib.evalFlakeModule
       {
-        inherit inputs;
+        inherit self inputs;
         specialArgs = {
-          inherit lib; # make custom lib available to parent functions
+          inherit lib; # make custom lib available to parent functions in flake.parts
         };
       }
       rec {
         imports = [
-          {_module.args.lib = lib;} # make custom lib available to all `perSystem` functions
+          {_module.args.lib = lib;} # make custom lib available to all `perSystem` functions in flake.parts
           ./nix
           ./packages
           ./modules

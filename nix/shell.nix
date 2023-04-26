@@ -1,4 +1,8 @@
-{
+{inputs, ...}: {
+  imports = [
+    inputs.devshell.flakeModule
+  ];
+
   perSystem = {
     pkgs,
     config,
@@ -8,9 +12,8 @@
     inherit (pkgs) mkShellNoCC;
     inherit (inputs'.nixpkgs-unstable.legacyPackages) nix-update statix mkdocs;
   in {
-    devShells.default = mkShellNoCC {
+    devshells.default = {
       name = "ethereum.nix";
-      inputsFrom = [config.mission-control.devShell];
       packages = [
         nix-update
         statix
