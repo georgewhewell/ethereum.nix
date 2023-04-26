@@ -5,11 +5,9 @@
 
   perSystem = {
     pkgs,
-    config,
     inputs',
     ...
   }: let
-    inherit (pkgs) mkShellNoCC;
     inherit (inputs'.nixpkgs-unstable.legacyPackages) nix-update statix mkdocs;
   in {
     devshells.default = {

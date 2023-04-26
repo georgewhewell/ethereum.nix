@@ -44,7 +44,6 @@
   };
 
   outputs = inputs @ {
-    self,
     flake-parts,
     nixpkgs,
     ...
@@ -61,9 +60,7 @@
       rec {
         imports = [
           {_module.args.lib = lib;} # make custom lib available to all `perSystem` functions in flake.parts
-
           inputs.hercules-ci-effects.flakeModule
-
           ./nix
           ./packages
           ./modules
