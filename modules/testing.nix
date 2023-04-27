@@ -1,8 +1,10 @@
-{
+toplevel @ {
   self,
   inputs,
+  isDevFlake,
   ...
-}: {
+}:
+toplevel.lib.optionalAttrs isDevFlake {
   perSystem = {
     lib,
     config,

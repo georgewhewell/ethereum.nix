@@ -1,5 +1,5 @@
 {
-  description = "A reproducible Nix package set for Ethereum clients and utilities";
+  description = "ethereum.nix / dev flake";
 
   nixConfig = {
     extra-substituters = [
@@ -26,8 +26,17 @@
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
     flake-root.url = "github:srid/flake-root";
+    hercules-ci-effects.url = "github:hercules-ci/hercules-ci-effects";
 
     # utils
+    devshell = {
+      url = "github:numtide/devshell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     flake-compat = {
       url = "github:nix-community/flake-compat";
       flake = false;
@@ -39,21 +48,23 @@
     nixpkgs,
     ...
   }: let
-    lib = nixpkgs.lib.extend (final: _: import ./nix/lib final);
+    lib = nixpkgs.lib.extend (final: _: import ../nix/lib final);
   in
     (flake-parts.lib.evalFlakeModule
       {
         inherit inputs;
         specialArgs = {
           inherit lib; # make custom lib available to parent functions in flake.parts
-          isDevFlake = false;
+          isDevFlake = true;
         };
       }
       rec {
         imports = [
           {_module.args.lib = lib;} # make custom lib available to all `perSystem` functions in flake.parts
-          ./packages
-          ./modules
+          inputs.hercules-ci-effects.flakeModule
+          ./default.nix
+          ./../packages
+          ./../modules
         ];
         systems = [
           "x86_64-linux"
@@ -61,9 +72,7 @@
           "x86_64-darwin"
           "aarch64-darwin"
         ];
-        perSystem = {pkgs, ...}: {
-          devShells.default = pkgs.mkShellNoCC {};
-        };
+        herculesCI.ciSystems = with builtins; filter (system: (match ".*-darwin" system) == null) systems;
       })
     .config
     .flake;
