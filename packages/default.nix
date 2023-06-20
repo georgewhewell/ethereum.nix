@@ -11,11 +11,12 @@
     self',
     pkgs,
     system,
+    inputs',
     ...
   }: let
     inherit (pkgs) callPackage;
     inherit (lib.flake) platformPkgs platformApps;
-    #callPackageUnstable = inputs'.nixpkgs-unstable.legacyPackages.callPackage;
+    callPackageUnstable = inputs'.nixpkgs-unstable.legacyPackages.callPackage;
   in {
     packages = platformPkgs system rec {
       # Consensus Clients
@@ -30,6 +31,7 @@
       geth = callPackage ./clients/execution/geth {};
       geth-sealer = callPackage ./clients/execution/geth-sealer {};
       nethermind = callPackage ./clients/execution/nethermind {};
+      reth = callPackageUnstable ./clients/execution/reth {};
 
       # Signers
       web3signer = callPackage ./signers/web3signer {};
@@ -96,6 +98,7 @@
       # execution clients
       besu.bin = "besu";
       erigon.bin = "erigon";
+      reth.bin = "reth";
 
       geth = {
         bin = "geth";
